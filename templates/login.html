@@ -48,4 +48,58 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.getElementById('loginForm');
+    
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Limpar erros anteriores
+        clearErrors();
+        
+        // Validar campos
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        
+        let isValid = true;
+        
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.value)) {
+            showError('email', 'Por favor, insira um email válido.');
+            isValid = false;
+        }
+        
+        // Validar senha
+        if (password.value.length === 0) {
+            showError('password', 'Por favor, insira sua senha.');
+            isValid = false;
+        }
+        
+        // Se todos os campos forem válidos, enviar o formulário
+        if (isValid) {
+            this.submit();
+        }
+    });
+    
+    function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-danger mt-1 small';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+        field.classList.add('is-invalid');
+    }
+    
+    function clearErrors() {
+        const errorMessages = document.querySelectorAll('.text-danger');
+        errorMessages.forEach(msg => msg.remove());
+        
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        invalidFields.forEach(field => field.classList.remove('is-invalid'));
+    }
+});
+</script>
+
 {% endblock %}
