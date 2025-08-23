@@ -73,4 +73,117 @@
         </div>
     </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const registerForm = document.getElementById('registerForm');
+    
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Limpar erros anteriores
+        clearErrors();
+        
+        // Validar campos
+        const name = document.getElementById('name');
+        const email = document.getElementById('email');
+        const phone = document.getElementById('phone');
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirm_password');
+        
+        let isValid = true;
+        
+        // Validar nome
+        if (name.value.trim().length < 3) {
+            showError('name', 'O nome deve ter pelo menos 3 caracteres.');
+            isValid = false;
+        }
+        
+        // Validar email
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email.value)) {
+            showError('email', 'Por favor, insira um email válido.');
+            isValid = false;
+        }
+        
+        // Validar telefone (se preenchido)
+        if (phone.value) {
+            const phoneRegex = /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/;
+            if (!phoneRegex.test(phone.value)) {
+                showError('phone', 'Por favor, insira um telefone válido com DDD.');
+                isValid = false;
+            }
+        }
+        
+        // Validar senha
+        if (password.value.length < 8) {
+            showError('password', 'A senha deve ter pelo menos 8 caracteres.');
+            isValid = false;
+        } else if (!/[A-Z]/.test(password.value)) {
+            showError('password', 'A senha deve conter pelo menos uma letra maiúscula.');
+            isValid = false;
+        } else if (!/[a-z]/.test(password.value)) {
+            showError('password', 'A senha deve conter pelo menos uma letra minúscula.');
+            isValid = false;
+        } else if (!/\d/.test(password.value)) {
+            showError('password', 'A senha deve conter pelo menos um número.');
+            isValid = false;
+        } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password.value)) {
+            showError('password', 'A senha deve conter pelo menos um caractere especial.');
+            isValid = false;
+        }
+        
+        // Validar confirmação de senha
+        if (password.value !== confirmPassword.value) {
+            showError('confirm_password', 'As senhas não coincidem.');
+            isValid = false;
+        }
+        
+        // Se todos os campos forem válidos, enviar o formulário
+        if (isValid) {
+            this.submit();
+        }
+    });
+    
+    function showError(fieldId, message) {
+        const field = document.getElementById(fieldId);
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'text-danger mt-1 small';
+        errorDiv.textContent = message;
+        field.parentNode.appendChild(errorDiv);
+        field.classList.add('is-invalid');
+    }
+    
+    function clearErrors() {
+        const errorMessages = document.querySelectorAll('.text-danger');
+        errorMessages.forEach(msg => msg.remove());
+        
+        const invalidFields = document.querySelectorAll('.is-invalid');
+        invalidFields.forEach(field => field.classList.remove('is-invalid'));
+    }
+    
+    // Formatação automática do telefone
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            
+            if (value.length > 11) {
+                value = value.slice(0, 11);
+            }
+            
+            if (value.length > 0) {
+                value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
+                
+                if (value.length > 10) {
+                    value = value.replace(/(\d{5})(\d)/, '$1-$2');
+                } else {
+                    value = value.replace(/(\d{4})(\d)/, '$1-$2');
+                }
+            }
+            
+            e.target.value = value;
+        });
+    }
+});
+</script>
 {% endblock %}
