@@ -67,7 +67,9 @@ class TicketMessage(db.Model):
     ticket = db.relationship('Ticket', backref='messages')
 
 
-
+with app.app_context():
+    db.create_all()
+    print("Tabelas criadas com sucesso!")
 
 print("Desenvolvedor inserido com sucesso!")
 # Rotas principais
@@ -348,5 +350,6 @@ if __name__ == '__main__':
             print("Pacotes de serviço criados com sucesso!")
     
     app.run(debug=True)
+
 
 
