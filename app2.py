@@ -70,10 +70,6 @@ class TicketMessage(db.Model):
     ticket = db.relationship('Ticket', backref='messages')
 
 
-with app.app_context():
-    db.create_all()
-    print("Tabelas criadas com sucesso!")
-
 print("Desenvolvedor inserido com sucesso!")
 # Rotas principais
 @app.route('/')
@@ -289,14 +285,12 @@ def init_db():
 
 
 def create_dev_command():
-    """Função para criar um desenvolvedor via linha de comando"""
     with app.app_context():
-        # Verificar se já existe um desenvolvedor
-        if User.query.filter_by(role='dev').first():
-            print("Já existe um usuário desenvolvedor no sistema.")
+        dev = User.query.filter_by(role='dev').first()
+        if dev:
+            print("Já existe um desenvolvedor.")
             return
         
-        # Criar usuário desenvolvedor padrão
         hashed_password = generate_password_hash('dev123')
         dev_user = User(
             name='Des',
@@ -305,54 +299,23 @@ def create_dev_command():
             password=hashed_password,
             role='dev'
         )
-        
-        db.session.add(dev_user)
-        db.session.commit()
-        print("Desenvolvedor criado com sucesso!")
-        print("Email: dev@falcondigital.com")
-        print("Senha: dev123")
-        print("IMPORTANTE: Altere a senha após o primeiro login!")
+        try:
+            db.session.add(dev_user)
+            db.session.commit()
+            print("Desenvolvedor criado com sucesso!")
+        except Exception as e:
+            db.session.rollback()
+            print("Erro ao criar desenvolvedor:", e)
+
 
 # Executar a criação do desenvolvedor quando o app iniciar
 if __name__ == '__main__':
-    with app.app_context():
-        # Criar tabelas se não existirem
-        db.create_all()
-        
-        # Criar usuário desenvolvedor se não existir
-        if not User.query.filter_by(role='dev').first():
-            create_dev_command()
-        
-        # Criar pacotes de serviço se não existirem
-        if not ServicePackage.query.first():
-            packages = [
-                ServicePackage(
-                    name='Pacote Básico',
-                    description='Soluções essenciais para presença digital',
-                    price=499.90,
-                    features='Site institucional; SEO básico; Analytics configurado'
-                ),
-                ServicePackage(
-                    name='Pacote Intermediário',
-                    description='Presença digital completa com marketing',
-                    price=999.90,
-                    features='Site responsivo; Campanhas de tráfego pago; SEO avançado'
-                ),
-                ServicePackage(
-                    name='Pacote Enterprise',
-                    description='Soluções completas para grandes negócios',
-                    price=2499.90,
-                    features='E-commerce completo; CRM integrado; Analytics avançado; Suporte 24/7'
-                )
-            ]
-            
-            for package in packages:
-                db.session.add(package)
-            
-            db.session.commit()
-            print("Pacotes de serviço criados com sucesso!")
     
-    app.run(debug=True)
+with app.app_context():
+    db.create_all()
+    create_dev_command()  # sempre chama, ou pelo menos checa se existe
+    init_db()             # inicializa pacotes
+
 
 
 
