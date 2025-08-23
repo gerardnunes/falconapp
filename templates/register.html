@@ -9,42 +9,46 @@
             <div class="card shadow">
                 <div class="card-body p-5">
                     <h2 class="text-center mb-4">Crie sua conta</h2>
-                    
+
                     {% if error %}
                     <div class="alert alert-danger" role="alert">
                         {{ error }}
                     </div>
                     {% endif %}
+
                     <form method="POST" action="{{ url_for('register') }}" id="registerForm">
-    <div class="mb-3">
-        <label for="name" class="form-label">Nome Completo</label>
-        <input type="text" class="form-control" id="name" name="name" required>
-    </div>
-    <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-    </div>
-    <div class="mb-3">
-        <label for="phone" class="form-label">Telefone</label>
-        <input type="text" class="form-control" id="phone" name="phone" placeholder="(11) 99999-9999">
-    </div>
-    <div class="mb-3">
-        <label for="password" class="form-label">Senha</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-    </div>
-    <div class="mb-3">
-        <label for="confirm_password" class="form-label">Confirmar Senha</label>
-        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-    </div>
-    <div class="d-grid">
-        <button type="submit" class="btn btn-primary">Criar Conta</button>
-    </div>
-</form>
-                    
-                   
-                    
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="phone" class="form-label">Telefone</label>
+                            <input type="text" class="form-control" id="phone" name="phone" placeholder="(11) 99999-9999">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Senha</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="confirm_password" class="form-label">Confirmar Senha</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Criar Conta</button>
+                        </div>
+                    </form>
+
                     <hr class="my-4">
-                    
+
                     <div class="text-center">
                         <p>Já tem uma conta? <a href="{{ url_for('login') }}">Faça login</a></p>
                     </div>
@@ -53,118 +57,91 @@
         </div>
     </div>
 </div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const registerForm = document.getElementById('registerForm');
-    
-    registerForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Limpar erros anteriores
-        clearErrors();
-        
-        // Validar campos
-        const name = document.getElementById('name');
-        const email = document.getElementById('email');
-        const phone = document.getElementById('phone');
-        const password = document.getElementById('password');
-        const confirmPassword = document.getElementById('confirm_password');
-        
-        let isValid = true;
-        
-        // Validar nome
-        if (name.value.trim().length < 3) {
-            showError('name', 'O nome deve ter pelo menos 3 caracteres.');
-            isValid = false;
-        }
-        
-        // Validar email
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email.value)) {
-            showError('email', 'Por favor, insira um email válido.');
-            isValid = false;
-        }
-        
-        // Validar telefone (se preenchido)
-        if (phone.value) {
-            const phoneRegex = /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/;
-            if (!phoneRegex.test(phone.value)) {
-                showError('phone', 'Por favor, insira um telefone válido com DDD.');
-                isValid = false;
-            }
-        }
-        
-        // Validar senha
-        if (password.value.length < 8) {
-            showError('password', 'A senha deve ter pelo menos 8 caracteres.');
-            isValid = false;
-        } else if (!/[A-Z]/.test(password.value)) {
-            showError('password', 'A senha deve conter pelo menos uma letra maiúscula.');
-            isValid = false;
-        } else if (!/[a-z]/.test(password.value)) {
-            showError('password', 'A senha deve conter pelo menos uma letra minúscula.');
-            isValid = false;
-        } else if (!/\d/.test(password.value)) {
-            showError('password', 'A senha deve conter pelo menos um número.');
-            isValid = false;
-        } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password.value)) {
-            showError('password', 'A senha deve conter pelo menos um caractere especial.');
-            isValid = false;
-        }
-        
-        // Validar confirmação de senha
-        if (password.value !== confirmPassword.value) {
-            showError('confirm_password', 'As senhas não coincidem.');
-            isValid = false;
-        }
-        
-        // Se todos os campos forem válidos, enviar o formulário
-        if (isValid) {
-            this.submit();
-        }
-    });
-    
-    function showError(fieldId, message) {
+    const phoneInput = document.getElementById('phone');
+
+    // Função para mostrar erro
+    const showError = (fieldId, message) => {
         const field = document.getElementById(fieldId);
         const errorDiv = document.createElement('div');
         errorDiv.className = 'text-danger mt-1 small';
         errorDiv.textContent = message;
         field.parentNode.appendChild(errorDiv);
         field.classList.add('is-invalid');
-    }
-    
-    function clearErrors() {
-        const errorMessages = document.querySelectorAll('.text-danger');
-        errorMessages.forEach(msg => msg.remove());
-        
-        const invalidFields = document.querySelectorAll('.is-invalid');
-        invalidFields.forEach(field => field.classList.remove('is-invalid'));
-    }
-    
+    };
+
+    // Limpar erros anteriores
+    const clearErrors = () => {
+        document.querySelectorAll('.text-danger').forEach(el => el.remove());
+        document.querySelectorAll('.is-invalid').forEach(field => field.classList.remove('is-invalid'));
+    };
+
+    // Validação do formulário
+    registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        clearErrors();
+
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = phoneInput.value.trim();
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+
+        let isValid = true;
+
+        if (name.length < 3) {
+            showError('name', 'O nome deve ter pelo menos 3 caracteres.');
+            isValid = false;
+        }
+
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            showError('email', 'Por favor, insira um email válido.');
+            isValid = false;
+        }
+
+        if (phone && !/^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(phone)) {
+            showError('phone', 'Por favor, insira um telefone válido com DDD.');
+            isValid = false;
+        }
+
+        if (password.length < 8) {
+            showError('password', 'A senha deve ter pelo menos 8 caracteres.');
+            isValid = false;
+        } else if (!/[A-Z]/.test(password)) {
+            showError('password', 'A senha deve conter pelo menos uma letra maiúscula.');
+            isValid = false;
+        } else if (!/[a-z]/.test(password)) {
+            showError('password', 'A senha deve conter pelo menos uma letra minúscula.');
+            isValid = false;
+        } else if (!/\d/.test(password)) {
+            showError('password', 'A senha deve conter pelo menos um número.');
+            isValid = false;
+        } else if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+            showError('password', 'A senha deve conter pelo menos um caractere especial.');
+            isValid = false;
+        }
+
+        if (password !== confirmPassword) {
+            showError('confirm_password', 'As senhas não coincidem.');
+            isValid = false;
+        }
+
+        if (isValid) registerForm.submit();
+    });
+
     // Formatação automática do telefone
-    const phoneInput = document.getElementById('phone');
-    if (phoneInput) {
-        phoneInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/\D/g, '');
-            
-            if (value.length > 11) {
-                value = value.slice(0, 11);
-            }
-            
-            if (value.length > 0) {
-                value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-                
-                if (value.length > 10) {
-                    value = value.replace(/(\d{5})(\d)/, '$1-$2');
-                } else {
-                    value = value.replace(/(\d{4})(\d)/, '$1-$2');
-                }
-            }
-            
-            e.target.value = value;
-        });
-    }
+    phoneInput.addEventListener('input', (e) => {
+        let value = e.target.value.replace(/\D/g, '').slice(0, 11);
+        if (value.length > 0) value = value.replace(/^(\d{2})(\d)/, '($1) $2');
+        if (value.length > 10) value = value.replace(/(\d{5})(\d)/, '$1-$2');
+        else value = value.replace(/(\d{4})(\d)/, '$1-$2');
+        e.target.value = value;
+    });
 });
 </script>
 {% endblock %}
+
 
