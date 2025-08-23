@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Área do Cliente - Falcon Digital Solutions{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card dashboard-card mb-4">
+                <div class="card-body text-center">
+                    <img src="https://ui-avatars.com/api/?name={{ user.name }}&size=120&background=0D6EFD&color=fff" alt="Avatar" class="rounded-circle mb-3">
+                    <h4>{{ user.name }}</h4>
+                    <p class="text-muted">{{ user.email }}</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Sair</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Meus Chamados</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTicketModal">
+                    <i class="fas fa-plus me-1"></i> Novo Chamado
+                </button>
+            </div>
+
+            {% if tickets %}
+            <div class="card dashboard-card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Título</th>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ticket in tickets %}
+                                <tr>
+                                    <td>#{{ ticket.id }}</td>
+                                    <td>{{ ticket.title }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ ticket.status }}">
+                                            {% if ticket.status == 'open' %}Aberto
+                                            {% elif ticket.status == 'in_progress' %}Em Andamento {% if ticket.dev_user %}(Aceito por: {{ ticket.dev_user.name }}){% endif %}
+                                            {% else %}Fechado
+                                            {% endif %}
+                                        </span>
+                                    </td>
+                                    <td>{{ ticket.created_at.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ ticket.id }}">Detalhes</button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="card dashboard-card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-ticket-alt fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">Nenhum chamado encontrado</h4>
+                    <p class="text-muted">Você ainda não abriu nenhum chamado de suporte.</p>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTicketModal">
+                        Abrir primeiro chamado
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- New Ticket Modal -->
+<div class="modal fade" id="newTicketModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Chamado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="ticketForm">
+                    <div class="mb-3">
+                        <label for="ticketTitle" class="form-label">Título</label>
+                        <input type="text" class="form-control" id="ticketTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="ticketDescription" class="form-label">Descrição</label>
+                        <textarea class="form-control" id="ticketDescription" rows="5" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="submitTicket">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modais de Detalhes com Mensagens -->
+{% for ticket in tickets %}
+<div class="modal fade" id="detailModal{{ ticket.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes do Ticket #{{ ticket.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Cliente:</strong> {{ user.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong>
+                        <span class="status-badge status-{{ ticket.status }}">
+                            {% if ticket.status == 'open' %}Aberto
+                            {% elif ticket.status == 'in_progress' %}Em Andamento {% if ticket.dev_user %}(Aceito por: {{ ticket.dev_user.name }}){% endif %}
+                            {% else %}Fechado
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Data de Criação:</strong> {{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Última Atualização:</strong> {{ ticket.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+                {% if ticket.completed_at %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>Finalizado em:</strong> {{ ticket.completed_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <strong>Título:</strong>
+                    <p>{{ ticket.title }}</p>
+                </div>
+                <div>
+                    <strong>Descrição:</strong>
+                    <p>{{ ticket.description }}</p>
+                </div>
+
+                <hr>
+
+                <h5>Mensagens</h5>
+                <div id="messages-container-{{ ticket.id }}" style="max-height: 300px; overflow-y: auto;" class="mb-3">
+                    {% for message in ticket.messages %}
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ message.user.name }} ({{ message.user.role }}):</strong>
+                                <small>{{ message.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                            </div>
+                            <p class="mb-0">{{ message.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-3">
+                    <textarea class="form-control" id="message-text-{{ ticket.id }}" rows="2" placeholder="Digite sua mensagem..."></textarea>
+                    <button class="btn btn-primary mt-2" onclick="sendMessage({{ ticket.id }})">Enviar Mensagem</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('submitTicket').addEventListener('click', function() {
+    const title = document.getElementById('ticketTitle').value;
+    const description = document.getElementById('ticketDescription').value;
+    
+    if (!title || !description) {
+        alert('Por favor, preencha todos os campos.');
+        return;
+    }
+    
+    fetch('/api/tickets', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            title: title,
+            description: description
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert('Chamado criado com sucesso!');
+            location.reload();
+        } else {
+            alert('Erro ao criar chamado: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erro ao criar chamado.');
+    });
+});
+
+function sendMessage(ticketId) {
+    const messageText = document.getElementById('message-text-' + ticketId).value;
+    
+    if (!messageText) {
+        alert('Por favor, digite uma mensagem.');
+        return;
+    }
+    
+    fetch('/api/tickets/' + ticketId + '/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: messageText
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            // Recarregar a página para ver a nova mensagem
+            location.reload();
+        } else {
+            alert('Erro ao enviar mensagem: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erro ao enviar mensagem.');
+    });
+}
+</script>
+{% endblock %}

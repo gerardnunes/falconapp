@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+
+{% block title %}Área do Desenvolvedor - Falcon Digital Solutions{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card dashboard-card mb-4">
+                <div class="card-body text-center">
+                    <img src="https://ui-avatars.com/api/?name={{ user.name }}&size=120&background=6f42c1&color=fff" alt="Avatar" class="rounded-circle mb-3">
+                    <h4>{{ user.name }}</h4>
+                    <p class="text-muted">Desenvolvedor</p>
+                    <div class="d-grid">
+                        <a href="{{ url_for('logout') }}" class="btn btn-outline-danger">Sair</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card dashboard-card">
+                <div class="card-header bg-purple text-white">
+                    <h5 class="mb-0">Estatísticas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <span class="text-muted">Tickets Abertos</span>
+                        <h4>{{ tickets|selectattr('status', 'equalto', 'open')|list|length }}</h4>
+                    </div>
+                    <div class="mb-3">
+                        <span class="text-muted">Em Andamento</span>
+                        <h4>{{ tickets|selectattr('status', 'equalto', 'in_progress')|list|length }}</h4>
+                    </div>
+                    <div>
+                        <span class="text-muted">Finalizados</span>
+                        <h4>{{ tickets|selectattr('status', 'equalto', 'closed')|list|length }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <h2 class="mb-4">Gerenciamento de Tickets</h2>
+
+            <ul class="nav nav-tabs mb-4" id="ticketsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="open-tab" data-bs-toggle="tab" data-bs-target="#open" type="button" role="tab">
+                        Abertos <span class="badge bg-danger">{{ tickets|selectattr('status', 'equalto', 'open')|list|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="progress-tab" data-bs-toggle="tab" data-bs-target="#progress" type="button" role="tab">
+                        Em Andamento <span class="badge bg-primary">{{ tickets|selectattr('status', 'equalto', 'in_progress')|list|length }}</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="closed-tab" data-bs-toggle="tab" data-bs-target="#closed" type="button" role="tab">
+                        Finalizados <span class="badge bg-success">{{ tickets|selectattr('status', 'equalto', 'closed')|list|length }}</span>
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="ticketsTabContent">
+                <!-- Tickets Abertos -->
+                <div class="tab-pane fade show active" id="open" role="tabpanel">
+                    {% set open_tickets = tickets|selectattr('status', 'equalto', 'open')|list %}
+                    {% if open_tickets %}
+                    <div class="card dashboard-card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Cliente</th>
+                                            <th>Título</th>
+                                            <th>Data</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ticket in open_tickets %}
+                                        <tr>
+                                            <td>#{{ ticket.id }}</td>
+                                            <td>{{ ticket.client_user.name }}</td>
+                                            <td>{{ ticket.title }}</td>
+                                            <td>{{ ticket.created_at.strftime('%d/%m/%Y') }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ ticket.id }}">Detalhes</button>
+                                                <button class="btn btn-sm btn-success" onclick="updateTicket({{ ticket.id }}, 'in_progress')">Assumir</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <h4 class="text-success">Nenhum ticket aberto</h4>
+                            <p class="text-muted">Todos os tickets estão sendo atendidos ou já foram finalizados.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tickets em Andamento -->
+                <div class="tab-pane fade" id="progress" role="tabpanel">
+                    {% set progress_tickets = tickets|selectattr('status', 'equalto', 'in_progress')|list %}
+                    {% if progress_tickets %}
+                    <div class="card dashboard-card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Cliente</th>
+                                            <th>Título</th>
+                                            <th>Data</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ticket in progress_tickets %}
+                                        <tr>
+                                            <td>#{{ ticket.id }}</td>
+                                            <td>{{ ticket.client_user.name }}</td>
+                                            <td>{{ ticket.title }}</td>
+                                            <td>{{ ticket.created_at.strftime('%d/%m/%Y') }}</td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ ticket.id }}">Detalhes</button>
+                                                <button class="btn btn-sm btn-success" onclick="updateTicket({{ ticket.id }}, 'closed')">Finalizar</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-tasks fa-3x text-primary mb-3"></i>
+                            <h4 class="text-primary">Nenhum ticket em andamento</h4>
+                            <p class="text-muted">Não há tickets sendo atendidos no momento.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <!-- Tickets Finalizados -->
+                <div class="tab-pane fade" id="closed" role="tabpanel">
+                    {% set closed_tickets = tickets|selectattr('status', 'equalto', 'closed')|list %}
+                    {% if closed_tickets %}
+                    <div class="card dashboard-card">
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Cliente</th>
+                                            <th>Título</th>
+                                            <th>Data de Criação</th>
+                                            <th>Data de Finalização</th>
+                                            <th>Ações</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for ticket in closed_tickets %}
+                                        <tr>
+                                            <td>#{{ ticket.id }}</td>
+                                            <td>{{ ticket.client_user.name }}</td>
+                                            <td>{{ ticket.title }}</td>
+                                            <td>{{ ticket.created_at.strftime('%d/%m/%Y') }}</td>
+                                            <td>
+                                                {% if ticket.completed_at %}
+                                                {{ ticket.completed_at.strftime('%d/%m/%Y') }}
+                                                {% else %}
+                                                Não informada
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ ticket.id }}">Detalhes</button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center py-5">
+                            <i class="fas fa-archive fa-3x text-muted mb-3"></i>
+                            <h4 class="text-muted">Nenhum ticket finalizado</h4>
+                            <p class="text-muted">Ainda não há tickets finalizados.</p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modais de Detalhes com Mensagens -->
+{% for ticket in tickets %}
+<div class="modal fade" id="detailModal{{ ticket.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalhes do Ticket #{{ ticket.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Cliente:</strong> {{ ticket.client_user.name }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Status:</strong>
+                        <span class="status-badge status-{{ ticket.status }}">
+                            {% if ticket.status == 'open' %}Aberto
+                            {% elif ticket.status == 'in_progress' %}Em Andamento (Aceito por: {{ ticket.dev_user.name if ticket.dev_user else 'N/A' }})
+                            {% else %}Fechado
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <strong>Data de Criação:</strong> {{ ticket.created_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Última Atualização:</strong> {{ ticket.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+                {% if ticket.completed_at %}
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <strong>Finalizado em:</strong> {{ ticket.completed_at.strftime('%d/%m/%Y %H:%M') }}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <strong>Título:</strong>
+                    <p>{{ ticket.title }}</p>
+                </div>
+                <div>
+                    <strong>Descrição:</strong>
+                    <p>{{ ticket.description }}</p>
+                </div>
+
+                <hr>
+
+                <h5>Mensagens</h5>
+                <div id="messages-container-{{ ticket.id }}" style="max-height: 300px; overflow-y: auto;" class="mb-3">
+                    {% for message in ticket.messages %}
+                    <div class="card mb-2">
+                        <div class="card-body py-2">
+                            <div class="d-flex justify-content-between">
+                                <strong>{{ message.user.name }} ({{ message.user.role }}):</strong>
+                                <small>{{ message.created_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                            </div>
+                            <p class="mb-0">{{ message.message }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="mt-3">
+                    <textarea class="form-control" id="message-text-{{ ticket.id }}" rows="2" placeholder="Digite sua mensagem..."></textarea>
+                    <button class="btn btn-primary mt-2" onclick="sendMessage({{ ticket.id }})">Enviar Mensagem</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                {% if ticket.status == 'open' %}
+                <button type="button" class="btn btn-success" onclick="updateTicket({{ ticket.id }}, 'in_progress')">Assumir Ticket</button>
+                {% elif ticket.status == 'in_progress' %}
+                <button type="button" class="btn btn-success" onclick="updateTicket({{ ticket.id }}, 'closed')">Finalizar Ticket</button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateTicket(ticketId, status) {
+    fetch('/api/tickets/' + ticketId, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            status: status,
+            dev_id: {{ session.user_id }}  // Associa o dev ao ticket
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert('Ticket atualizado com sucesso!');
+            location.reload();
+        } else {
+            alert('Erro ao atualizar ticket: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erro ao atualizar ticket.');
+    });
+}
+
+function sendMessage(ticketId) {
+    const messageText = document.getElementById('message-text-' + ticketId).value;
+    
+    if (!messageText) {
+        alert('Por favor, digite uma mensagem.');
+        return;
+    }
+    
+    fetch('/api/tickets/' + ticketId + '/messages', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            message: messageText
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            // Recarregar a página para ver a nova mensagem
+            location.reload();
+        } else {
+            alert('Erro ao enviar mensagem: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Erro ao enviar mensagem.');
+    });
+}
+</script>
+{% endblock %}
