@@ -22,6 +22,24 @@ body {
     color: white;
     padding: 100px 0;
 }
+.is-invalid {
+    border-color: #dc3545 !important;
+}
+
+.text-danger {
+    color: #dc3545 !important;
+    font-size: 0.875rem;
+}
+
+.alert {
+    border-radius: 0.5rem;
+}
+
+/* Melhorar a aparência dos placeholders */
+.form-control::placeholder {
+    color: #6c757d;
+    opacity: 0.7;
+}
 
 .section-title {
     position: relative;
@@ -141,4 +159,5 @@ body {
 .message-dev {
     background-color: #f7e6ff;
     border-left: 4px solid #6f42c1;
+
 }
