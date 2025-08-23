@@ -68,9 +68,26 @@ class TicketMessage(db.Model):
     # Relações
     user = db.relationship('User', backref='messages')
     ticket = db.relationship('Ticket', backref='messages')
+with app.app_context():
+    db.create_all()
+    
+    # Cria dev se não existir
+    from werkzeug.security import generate_password_hash
+    from app2 import User  # ou o caminho correto se estiver modularizado
 
+    if not User.query.filter_by(role='dev').first():
+        hashed_password = generate_password_hash('dev123')
+        dev_user = User(
+            name='Des',
+            email='dev@falcondigital.com',
+            phone='(11) 99999-9999',
+            password=hashed_password,
+            role='dev'
+        )
+        db.session.add(dev_user)
+        db.session.commit()
+        print("Desenvolvedor criado com sucesso!")
 
-print("Desenvolvedor inserido com sucesso!")
 # Rotas principais
 @app.route('/')
 def index():
@@ -317,6 +334,7 @@ if __name__ == '__main__':
         init_db()
     
           # inicializa pacotes
+
 
 
 
