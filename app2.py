@@ -89,6 +89,65 @@ with app.app_context():
         print("Desenvolvedor criado com sucesso!")
 
 # Rotas principais
+import re
+
+# Funções de validação
+def validate_email(email):
+    """Valida o formato do email"""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+def validate_phone(phone):
+    """Valida o formato do telefone brasileiro"""
+    # Remove caracteres não numéricos
+    phone = re.sub(r'\D', '', phone)
+    
+    # Verifica se tem 10 ou 11 dígitos (com DDD)
+    if len(phone) not in [10, 11]:
+        return False
+    
+    # Verifica se o DDD é válido (11 a 99)
+    ddd = int(phone[:2])
+    if ddd < 11 or ddd > 99:
+        return False
+    
+    return True
+
+def validate_password(password):
+    """Valida a força da senha"""
+    # Pelo menos 8 caracteres
+    if len(password) < 8:
+        return False, "A senha deve ter pelo menos 8 caracteres"
+    
+    # Pelo menos uma letra maiúscula
+    if not re.search(r'[A-Z]', password):
+        return False, "A senha deve conter pelo menos uma letra maiúscula"
+    
+    # Pelo menos uma letra minúscula
+    if not re.search(r'[a-z]', password):
+        return False, "A senha deve conter pelo menos uma letra minúscula"
+    
+    # Pelo menos um número
+    if not re.search(r'\d', password):
+        return False, "A senha deve conter pelo menos um número"
+    
+    # Pelo menos um caractere especial
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        return False, "A senha deve conter pelo menos um caractere especial"
+    
+    return True, "Senha válida"
+
+def format_phone(phone):
+    """Formata o telefone para o padrão brasileiro"""
+    # Remove caracteres não numéricos
+    phone = re.sub(r'\D', '', phone)
+    
+    if len(phone) == 11:
+        return f"({phone[:2]}) {phone[2:7]}-{phone[7:]}"
+    elif len(phone) == 10:
+        return f"({phone[:2]}) {phone[2:6]}-{phone[6:]}"
+    else:
+        return phone
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -153,7 +212,14 @@ def login():
         email = request.form.get('email')
         password = request.form.get('password')
         
-        user = User.query.filter_by(email=email).first()
+        # Validação básica
+        if not email or not password:
+            return render_template('login.html', error='Por favor, preencha todos os campos.')
+        
+        if not validate_email(email):
+            return render_template('login.html', error='Por favor, insira um email válido.')
+        
+        user = User.query.filter_by(email=email.lower()).first()
         
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
@@ -165,10 +231,9 @@ def login():
             else:
                 return redirect(url_for('dev_dashboard'))
         else:
-            return render_template('login.html', error='Credenciais inválidas')
+            return render_template('login.html', error='Email ou senha incorretos.')
     
     return render_template('login.html')
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -179,18 +244,45 @@ def register():
         confirm_password = request.form.get('confirm_password')
         role = request.form.get('role', 'client')
         
+        # Validações
+        errors = []
+        
+        # Validar nome
+        if not name or len(name.strip()) < 3:
+            errors.append('O nome deve ter pelo menos 3 caracteres.')
+        
+        # Validar email
+        if not validate_email(email):
+            errors.append('Por favor, insira um email válido.')
+        elif User.query.filter_by(email=email).first():
+            errors.append('Este email já está cadastrado.')
+        
+        # Validar telefone
+        if phone and not validate_phone(phone):
+            errors.append('Por favor, insira um telefone válido com DDD.')
+        
+        # Validar senha
         if password != confirm_password:
-            return render_template('register.html', error='As senhas não coincidem')
+            errors.append('As senhas não coincidem.')
+        else:
+            is_valid, msg = validate_password(password)
+            if not is_valid:
+                errors.append(msg)
         
-        if User.query.filter_by(email=email).first():
-            return render_template('register.html', error='Email já cadastrado')
+        # Se houver erros, retornar para o formulário
+        if errors:
+            return render_template('register.html', errors=errors)
         
+        # Formatando telefone
+        formatted_phone = format_phone(phone) if phone else None
+        
+        # Criar usuário
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
         
         new_user = User(
-            name=name,
-            email=email,
-            phone=phone,
+            name=name.strip(),
+            email=email.lower(),
+            phone=formatted_phone,
             password=hashed_password,
             role=role
         )
@@ -198,6 +290,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         
+        flash('Conta criada com sucesso! Faça login para continuar.', 'success')
         return redirect(url_for('login'))
     
     return render_template('register.html')
@@ -334,6 +427,7 @@ if __name__ == '__main__':
         init_db()
     
           # inicializa pacotes
+
 
 
 
