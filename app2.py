@@ -310,11 +310,13 @@ def create_dev_command():
 
 # Executar a criação do desenvolvedor quando o app iniciar
 if __name__ == '__main__':
-    
-with app.app_context():
+    with app.app_context():
     db.create_all()
     create_dev_command()  # sempre chama, ou pelo menos checa se existe
-    init_db()             # inicializa pacotes
+    init_db()
+    
+          # inicializa pacotes
+
 
 
 
