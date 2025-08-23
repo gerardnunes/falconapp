@@ -5,6 +5,9 @@ import os
 from datetime import datetime
 
 app = Flask(__name__)
+
+app.secret_key = "uma_chave_muito_secreta_e_unica" 
+
 DATABASE_URL = "postgresql://postgres:jxIhRbNjprIDGypFMqjJPJZrXXkgCjjF@shortline.proxy.rlwy.net:33514/railway"
 
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
@@ -350,6 +353,7 @@ if __name__ == '__main__':
             print("Pacotes de serviço criados com sucesso!")
     
     app.run(debug=True)
+
 
 
 
