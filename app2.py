@@ -16,7 +16,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 # Modelos de dados
+# Modelos de dados
 class User(db.Model):
+    __tablename__ = 'users'  # Evita conflito com palavra reservada
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
@@ -29,37 +31,41 @@ class User(db.Model):
     client_tickets = db.relationship('Ticket', foreign_keys='Ticket.client_id', backref='client_user', lazy=True)
     dev_tickets = db.relationship('Ticket', foreign_keys='Ticket.dev_id', backref='dev_user', lazy=True)
 
+
 class Ticket(db.Model):
+    __tablename__ = 'tickets'
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=False)
     status = db.Column(db.String(20), default='open')  # 'open', 'in_progress', 'closed'
-    client_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    dev_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    client_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    dev_id = db.Column(db.Integer, db.ForeignKey('users.id'))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     completed_at = db.Column(db.DateTime)
-    
-    # Adicione esta relação
-    #messages = db.relationship('TicketMessage', backref='ticket_messages', lazy=True)
+
 
 class ServicePackage(db.Model):
+    __tablename__ = 'service_packages'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.Text, nullable=False)
     price = db.Column(db.Float, nullable=False)
     features = db.Column(db.Text, nullable=False)
-# Adicione este novo modelo após os modelos existentes
+
+
 class TicketMessage(db.Model):
+    __tablename__ = 'ticket_messages'
     id = db.Column(db.Integer, primary_key=True)
-    ticket_id = db.Column(db.Integer, db.ForeignKey('ticket.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ticket_id = db.Column(db.Integer, db.ForeignKey('tickets.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     message = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Relações
     user = db.relationship('User', backref='messages')
     ticket = db.relationship('Ticket', backref='messages')
+
 
 
 
@@ -342,4 +348,5 @@ if __name__ == '__main__':
             print("Pacotes de serviço criados com sucesso!")
     
     app.run(debug=True)
+
 
