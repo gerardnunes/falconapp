@@ -151,7 +151,7 @@ def format_phone(phone):
         return phone
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('login.html')
 
 @app.route('/services')
 def services():
@@ -428,6 +428,7 @@ if __name__ == '__main__':
         init_db()
     
           # inicializa pacotes
+
 
 
 
